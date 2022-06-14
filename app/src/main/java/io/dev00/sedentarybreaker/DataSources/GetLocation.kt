@@ -16,7 +16,6 @@ fun getLocation(
     val location = client.getCurrentLocation(100, CancellationTokenSource().token)
     location.addOnCompleteListener {
         if (it.isSuccessful) {
-            Log.d("TAG", "getLocation: ${it.result}")
             onSuccessListener(it.result.latitude, it.result.longitude);
         } else {
             onFailureListener(it.exception)

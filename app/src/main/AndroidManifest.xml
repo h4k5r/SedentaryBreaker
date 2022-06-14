@@ -22,11 +22,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SedentaryBreaker">
+        <!-- API Keys -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/GoogleMapsKey"/>
         <!-- Services -->
         <service
             android:name=".Services.SedentaryBackgroundService"
             android:enabled="true" />
+
         <!--Broadcast Receivers-->
+
         <receiver
             android:name=".BroadcastReceivers.SystemBootReceiver"
             android:enabled="true"
@@ -38,6 +44,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
+
         <receiver
             android:name=".BroadcastReceivers.ActivityTransitionReceiver"
             android:exported="false"
@@ -70,6 +77,7 @@
             android:theme="@style/Theme.SedentaryBreaker">
 
         </activity>
+
     </application>
 
 </manifest>
