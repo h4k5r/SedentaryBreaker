@@ -9,6 +9,7 @@ import io.dev00.sedentarybreaker.BroadcastReceivers.SedentaryAlarmReceiver
 
 object SedentaryTrigger {
     fun trigger(eventType: String, transitionType: String, context: Context) {
+
         when (eventType) {
             "STILL" -> {
                 if (transitionType == "ENTER") {

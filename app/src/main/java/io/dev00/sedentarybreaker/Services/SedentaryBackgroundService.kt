@@ -12,7 +12,7 @@ import io.dev00.sedentarybreaker.Utils.ActivityTransitionsUtil
 import io.dev00.sedentarybreaker.Utils.Constants
 
 
-class SedentaryBackgroundService: Service() {
+class SedentaryBackgroundService  : Service() {
     lateinit var client: ActivityRecognitionClient
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         client = ActivityRecognition.getClient(this)
