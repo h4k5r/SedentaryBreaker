@@ -9,18 +9,44 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.room.Room
 import io.dev00.sedentarybreaker.R
+import io.dev00.sedentarybreaker.TAG
+import io.dev00.sedentarybreaker.data.SedentaryBreakerDatabase
+import java.text.SimpleDateFormat
+import java.util.*
 
 class SedentaryAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        generateNotification(
-            "Sedentary Trigger",
-            "You have been sitting for a long period. Take a hike",
-            NotificationManager.IMPORTANCE_HIGH,
-            10000,
+        //Send notification for each hour
+        val db = Room.databaseBuilder(
             context,
-            intent
-        )
+            SedentaryBreakerDatabase::class.java,
+            "sedBreaker_db"
+        ).build()
+        val dao = db.sedentaryBreakerDAO()
+        val currentTime = SimpleDateFormat("HH").format(Date()).toInt()
+        val thread = Thread {
+            //if cleared stop thread
+            while (true) {
+                val alarmIsSet = dao.getAlarmIsSet()
+                if (alarmIsSet != null && alarmIsSet.isSet && (currentTime in 9..20)) {
+                    generateNotification(
+                        "Sedentary Trigger",
+                        "You have been sitting for a long period. Take a hike",
+                        NotificationManager.IMPORTANCE_HIGH,
+                        10000,
+                        context,
+                        intent
+                    )
+                } else {
+                    break
+                }
+                Thread.sleep(1000 * 3600)
+            }
+        }
+        thread.start()
+
     }
 
     fun generateNotification(
