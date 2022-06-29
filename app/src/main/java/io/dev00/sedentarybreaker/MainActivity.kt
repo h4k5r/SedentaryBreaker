@@ -12,15 +12,14 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.room.Room
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.ActivityRecognition
-import com.google.android.gms.location.DetectedActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -29,10 +28,11 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import io.dev00.sedentarybreaker.Authentication.AuthResultContract
 import io.dev00.sedentarybreaker.DataSources.getLocation
+import io.dev00.sedentarybreaker.data.SedentaryBreakerDatabase
+import io.dev00.sedentarybreaker.models.HomeLocation
 import io.dev00.sedentarybreaker.ui.theme.SedentaryBreakerTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 val TAG = "TAG"
 
@@ -81,6 +81,7 @@ fun AuthCompose() {
                 text = "Google sign in failed"
             }
         }
+    val client = FusedLocationProviderClient(context)
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -99,7 +100,33 @@ fun AuthCompose() {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Button(onClick = { /*TODO*/ }) {
+                    Button(onClick = {
+                        getLocation(
+                            client = client,
+                            onSuccessListener = { latitude, longitude ->
+                                val db = Room.databaseBuilder(
+                                    context,
+                                    SedentaryBreakerDatabase::class.java,
+                                    "sedBreaker_db"
+                                ).build()
+                                val dao = db.sedentaryBreakerDAO()
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    val currentHomeLocation = dao.getHomeLocation()
+                                    if (currentHomeLocation != null) {
+                                        currentHomeLocation.lat = latitude
+                                        currentHomeLocation.lon = longitude
+                                        dao.updateHomeLocation(currentHomeLocation)
+                                    } else {
+                                        dao.insertHomeLocation(
+                                            HomeLocation(
+                                                lat = latitude,
+                                                long = longitude
+                                            )
+                                        )
+                                    }
+                                }
+                            })
+                    }) {
                         Text(text = "Set Current Location as Home")
                     }
                     Spacer(modifier = Modifier.height(10.dp))

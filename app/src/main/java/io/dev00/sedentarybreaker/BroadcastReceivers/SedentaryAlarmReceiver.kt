@@ -10,8 +10,11 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.room.Room
+import com.google.android.gms.location.FusedLocationProviderClient
+import io.dev00.sedentarybreaker.DataSources.getLocation
 import io.dev00.sedentarybreaker.R
 import io.dev00.sedentarybreaker.TAG
+import io.dev00.sedentarybreaker.Utils.Utils
 import io.dev00.sedentarybreaker.data.SedentaryBreakerDatabase
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,19 +29,32 @@ class SedentaryAlarmReceiver : BroadcastReceiver() {
         ).build()
         val dao = db.sedentaryBreakerDAO()
         val currentTime = SimpleDateFormat("HH").format(Date()).toInt()
+        val client = FusedLocationProviderClient(context)
         val thread = Thread {
             //if cleared stop thread
             while (true) {
                 val alarmIsSet = dao.getAlarmIsSet()
-                if (alarmIsSet != null && alarmIsSet.isSet && (currentTime in 9..20)) {
-                    generateNotification(
-                        "Sedentary Trigger",
-                        "You have been sitting for a long period. Take a hike",
-                        NotificationManager.IMPORTANCE_HIGH,
-                        10000,
-                        context,
-                        intent
-                    )
+                val currentHomeLocation = dao.getHomeLocation()
+                if (alarmIsSet != null && alarmIsSet.isSet && (currentTime in 9..20) && currentHomeLocation != null) {
+                    getLocation(client = client, onSuccessListener = { latitude, longitude ->
+                        if (
+                            Utils.isWithinRange(
+                                homeLatitude = currentHomeLocation.lat,
+                                homeLongitude = currentHomeLocation.lon,
+                                currentLat = latitude,
+                                currentLong = longitude
+                            )
+                        ) {
+                            generateNotification(
+                                "Sedentary Trigger",
+                                "You have been sitting for a long period. Take a hike",
+                                NotificationManager.IMPORTANCE_HIGH,
+                                10000,
+                                context,
+                                intent
+                            )
+                        }
+                    })
                 } else {
                     break
                 }
