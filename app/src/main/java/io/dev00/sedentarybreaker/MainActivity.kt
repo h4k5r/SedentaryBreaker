@@ -1,8 +1,11 @@
 package io.dev00.sedentarybreaker
 
 import android.Manifest
+import android.content.Intent
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
+import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -13,6 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -28,11 +35,16 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import io.dev00.sedentarybreaker.Authentication.AuthResultContract
 import io.dev00.sedentarybreaker.DataSources.getLocation
+import io.dev00.sedentarybreaker.DataSources.getWeather
+import io.dev00.sedentarybreaker.Services.SedentaryBackgroundService
+import io.dev00.sedentarybreaker.Triggers.SedentaryTrigger
+import io.dev00.sedentarybreaker.Utils.Utils
 import io.dev00.sedentarybreaker.data.SedentaryBreakerDatabase
 import io.dev00.sedentarybreaker.models.HomeLocation
 import io.dev00.sedentarybreaker.ui.theme.SedentaryBreakerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 val TAG = "TAG"
 
@@ -100,34 +112,62 @@ fun AuthCompose() {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Button(onClick = {
-                        getLocation(
-                            client = client,
-                            onSuccessListener = { latitude, longitude ->
-                                val db = Room.databaseBuilder(
-                                    context,
-                                    SedentaryBreakerDatabase::class.java,
-                                    "sedBreaker_db"
-                                ).build()
-                                val dao = db.sedentaryBreakerDAO()
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    val currentHomeLocation = dao.getHomeLocation()
-                                    if (currentHomeLocation != null) {
-                                        currentHomeLocation.lat = latitude
-                                        currentHomeLocation.lon = longitude
-                                        dao.updateHomeLocation(currentHomeLocation)
-                                    } else {
-                                        dao.insertHomeLocation(
-                                            HomeLocation(
-                                                lat = latitude,
-                                                long = longitude
+                    Row {
+
+                        Button(onClick = {
+                            ServicesManager.startServices(context, Utils.services)
+                        }) {
+                            Text(
+                                text = "Set Service Now",
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Button(onClick = {
+                            getLocation(
+                                client = client,
+                                onSuccessListener = { latitude, longitude ->
+
+                                    val db = Room.databaseBuilder(
+                                        context,
+                                        SedentaryBreakerDatabase::class.java,
+                                        "sedBreaker_db"
+                                    ).build()
+                                    val dao = db.sedentaryBreakerDAO()
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        val currentHomeLocation = dao.getHomeLocation()
+                                        if (currentHomeLocation != null) {
+                                            currentHomeLocation.lat = latitude
+                                            currentHomeLocation.lon = longitude
+                                            dao.updateHomeLocation(currentHomeLocation)
+                                        } else {
+                                            dao.insertHomeLocation(
+                                                HomeLocation(
+                                                    lat = latitude,
+                                                    long = longitude
+                                                )
                                             )
-                                        )
+                                        }
+//                                        getWeather(
+//                                            Resources.getSystem()
+//                                                .getString(R.string.OpenWeatherKey),
+//                                            LAT = latitude,
+//                                            LON = longitude,
+//                                            context,
+//                                            onWeatherFetched = {
+//                                                val condition: JSONObject =
+//                                                    it.get("condition") as JSONObject
+//
+//                                                Log.d(TAG, "AuthCompose: ${condition.get("text")}")
+//                                            })
                                     }
-                                }
-                            })
-                    }) {
-                        Text(text = "Set Current Location as Home")
+                                })
+                        }) {
+                            Text(
+                                text = "Set Current Location as Home",
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                     MapsTest()

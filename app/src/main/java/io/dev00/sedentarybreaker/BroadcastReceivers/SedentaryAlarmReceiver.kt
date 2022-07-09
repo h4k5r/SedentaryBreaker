@@ -13,7 +13,6 @@ import androidx.room.Room
 import com.google.android.gms.location.FusedLocationProviderClient
 import io.dev00.sedentarybreaker.DataSources.getLocation
 import io.dev00.sedentarybreaker.R
-import io.dev00.sedentarybreaker.TAG
 import io.dev00.sedentarybreaker.Utils.Utils
 import io.dev00.sedentarybreaker.data.SedentaryBreakerDatabase
 import java.text.SimpleDateFormat
@@ -33,6 +32,10 @@ class SedentaryAlarmReceiver : BroadcastReceiver() {
         val thread = Thread {
             //if cleared stop thread
             while (true) {
+                Thread.sleep(
+                    1000
+//                            * 3600
+                )
                 val alarmIsSet = dao.getAlarmIsSet()
                 val currentHomeLocation = dao.getHomeLocation()
                 if (alarmIsSet != null && alarmIsSet.isSet && (currentTime in 9..20) && currentHomeLocation != null) {
@@ -47,7 +50,9 @@ class SedentaryAlarmReceiver : BroadcastReceiver() {
                         ) {
                             generateNotification(
                                 "Sedentary Trigger",
-                                "You have been sitting for a long period. Take a hike",
+                                "test"
+//                                        + Utils.getCustomNotification("", context)
+                                ,
                                 NotificationManager.IMPORTANCE_HIGH,
                                 10000,
                                 context,
@@ -58,7 +63,6 @@ class SedentaryAlarmReceiver : BroadcastReceiver() {
                 } else {
                     break
                 }
-                Thread.sleep(1000 * 3600)
             }
         }
         thread.start()
