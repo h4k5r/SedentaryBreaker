@@ -1,14 +1,16 @@
 package io.dev00.sedentarybreaker.Utils
 
 import android.content.Context
+import android.content.res.Resources
 import android.location.Location
+import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import io.dev00.sedentarybreaker.DataSources.getCalories
-import io.dev00.sedentarybreaker.DataSources.getFoodNutrition
-import io.dev00.sedentarybreaker.DataSources.getGoal
-import io.dev00.sedentarybreaker.DataSources.getTodayTotalSteps
+import com.google.android.gms.location.FusedLocationProviderClient
+import io.dev00.sedentarybreaker.DataSources.*
+import io.dev00.sedentarybreaker.R
 import io.dev00.sedentarybreaker.Services.SedentaryBackgroundService
+import org.json.JSONObject
 import java.time.LocalDate
 import java.time.ZoneOffset
 
@@ -29,7 +31,7 @@ object Utils {
         //add services here
     )
 
-    fun getCustomNotification(weatherInfo: String, context: Context): String {
+    fun getCustomNotification(context: Context): String {
         val random = (1..3).random()
         val account = GoogleSignIn.getLastSignedInAccount(context)
         val notificationText = StringBuilder()
@@ -48,7 +50,36 @@ object Utils {
                     }
                 }
                 2 -> {
-                    notificationText.append("The Weather is $weatherInfo, and you could go for a walk")
+                    getLocation(
+                        client = FusedLocationProviderClient(context),
+                        onSuccessListener = { latitude, longitude ->
+                            getWeather(
+                                API_Key = Resources.getSystem().getString(R.string.OpenWeatherKey),
+                                LAT = latitude,
+                                LON = longitude,
+                                context = context
+                            ) {
+                                val weather: JSONObject = it[0] as JSONObject
+                                val weatherID = weather.getInt("id")
+                                if (weatherID < 800) {
+                                    getTodayTotalSteps(
+                                        context = context,
+                                        account = account
+                                    ) { walkedSteps ->
+                                        getGoal(context = context, account = account) { goalSteps ->
+                                            val stepsToBeWalked = goalSteps - walkedSteps
+                                            if (stepsToBeWalked <= 0) {
+                                                notificationText.append("Great Job you managed to achieve your goal, and you can do More")
+                                            } else {
+                                                notificationText.append("If you walk $stepsToBeWalked steps more you would hit your goal")
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    notificationText.append("The Weather is ${weather.get("description")}, and you could go for a walk")
+                                }
+                            }
+                        })
                 }
                 3 -> {
                     val todayStart =

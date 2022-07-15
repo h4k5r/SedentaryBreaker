@@ -49,10 +49,8 @@ class SedentaryAlarmReceiver : BroadcastReceiver() {
                             )
                         ) {
                             generateNotification(
+                                ""+Utils.getCustomNotification( context = context),
                                 "Sedentary Trigger",
-                                "test"
-//                                        + Utils.getCustomNotification("", context)
-                                ,
                                 NotificationManager.IMPORTANCE_HIGH,
                                 10000,
                                 context,
