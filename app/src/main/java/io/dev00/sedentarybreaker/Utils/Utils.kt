@@ -31,8 +31,9 @@ object Utils {
         //add services here
     )
 
-    fun getCustomNotification(context: Context): String {
-        val random = (1..3).random()
+    fun getCustomNotification(context: Context,onStringConstructed:(constructedString:String) -> Unit) {
+        val random = 3
+//            (1..3).random()
         val account = GoogleSignIn.getLastSignedInAccount(context)
         val notificationText = StringBuilder()
         if (account != null) {
@@ -46,6 +47,7 @@ object Utils {
                             } else {
                                 notificationText.append("If you walk $stepsToBeWalked steps more you would hit your goal")
                             }
+                            onStringConstructed(notificationText.toString())
                         }
                     }
                 }
@@ -54,7 +56,7 @@ object Utils {
                         client = FusedLocationProviderClient(context),
                         onSuccessListener = { latitude, longitude ->
                             getWeather(
-                                API_Key = Resources.getSystem().getString(R.string.OpenWeatherKey),
+                                API_Key = "5dc3dbe89a4589c36200a697dc68e5f1",
                                 LAT = latitude,
                                 LON = longitude,
                                 context = context
@@ -73,10 +75,13 @@ object Utils {
                                             } else {
                                                 notificationText.append("If you walk $stepsToBeWalked steps more you would hit your goal")
                                             }
+                                            onStringConstructed(notificationText.toString())
                                         }
                                     }
                                 } else {
                                     notificationText.append("The Weather is ${weather.get("description")}, and you could go for a walk")
+                                    onStringConstructed(notificationText.toString())
+
                                 }
                             }
                         })
@@ -97,10 +102,12 @@ object Utils {
                                 )
                             }"
                         )
+                        onStringConstructed(notificationText.toString())
+
                     }
                 }
             }
         }
-        return notificationText.toString()
+        Log.d(TAG, "getCustomNotification: ${notificationText.toString()}")
     }
 }

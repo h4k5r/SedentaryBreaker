@@ -49,14 +49,17 @@ class SedentaryAlarmReceiver : BroadcastReceiver() {
                                 currentLong = longitude
                             )
                         ) {
-                            generateNotification(
-                                ""+Utils.getCustomNotification( context = context),
-                                "Sedentary Trigger",
-                                NotificationManager.IMPORTANCE_HIGH,
-                                10000,
-                                context,
-                                intent
-                            )
+                            Utils.getCustomNotification( context = context) {
+                                generateNotification(
+                                    it,
+                                    "Sedentary Trigger",
+                                    NotificationManager.IMPORTANCE_HIGH,
+                                    10000,
+                                    context,
+                                    intent
+                                )
+                            }
+
                         }
                     })
                 } else {
