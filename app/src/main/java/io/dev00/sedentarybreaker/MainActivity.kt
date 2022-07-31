@@ -111,7 +111,7 @@ fun AuthCompose() {
                             ServicesManager.startServices(context, Utils.services)
                         }) {
                             Text(
-                                text = "Set Service Now",
+                                text = "Start Service Now",
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
